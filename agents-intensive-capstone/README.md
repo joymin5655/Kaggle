@@ -2,22 +2,19 @@
 
 AI-powered multi-agent system for analyzing environmental policy effectiveness worldwide.
 
-**Team Robee** | Kaggle AI Agents Intensive Capstone Project | Track A: Consent Agents
-
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Team Robee** | Kaggle AI Agents Intensive Capstone | Track A: Consent Agents
 
 ---
 
-## ✅ Course Concepts Implemented
+## 🎓 Google AI Agents Intensive - 5일 코스 구현
 
 | Day | Topic | Implementation | Status |
 |-----|-------|----------------|--------|
-| **Day 1** | Multi-Agent Architecture | 4 specialized agents + orchestrator | ✅ |
-| **Day 2** | Tools & MCP | 5 custom tools + FastMCP server | ✅ |
-| **Day 3** | Memory & Context | Session + Long-term memory | ✅ |
-| **Day 4** | Observability | Logger, Tracer, Metrics, Evaluator | ✅ |
-| **Day 5** | A2A & Deployment | Agent Cards, A2A Protocol, Configs | ✅ |
+| **Day 1** | Multi-Agent Architecture | `Agent`, `InMemoryRunner`, Sub-agents | ✅ |
+| **Day 2** | Tools & MCP | `FunctionTool`, Custom tools | ✅ |
+| **Day 3** | Sessions & Memory | `InMemorySessionService`, `InMemoryMemoryService` | ✅ |
+| **Day 4** | Observability | `AgentLogger`, `AgentTracer`, `MetricsCollector` | ✅ |
+| **Day 5** | A2A Protocol | `AgentCard`, `RemoteA2aAgent`, `A2AProtocol` | ✅ |
 
 ---
 
@@ -25,23 +22,24 @@ AI-powered multi-agent system for analyzing environmental policy effectiveness w
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  PolicyAgentSystem (Orchestrator)           │
+│              PolicyAgentSystem (Orchestrator)               │
 ├─────────────────────────────────────────────────────────────┤
+│                                                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │    Data      │  │   Policy     │  │  Visualizer  │      │
-│  │  Collector   │→ │  Analyzer    │→ │    Agent     │      │
+│  │    Data      │  │   Policy     │  │   Reporter   │      │
+│  │  Collector   │→ │   Analyzer   │→ │    Agent     │      │
 │  │    Agent     │  │    Agent     │  │              │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
-│         ↓                                    ↓              │
-│  ┌──────────────────────────────────────────────────┐      │
-│  │              Reporter Agent                       │      │
-│  └──────────────────────────────────────────────────┘      │
+│        ↓                  ↓                  ↓              │
+│    Tools:            Tools:              Output:           │
+│  - get_air_quality   - analyze_         Korean Report     │
+│  - search_policies     effectiveness                       │
+│                                                             │
 ├─────────────────────────────────────────────────────────────┤
 │  Day 3: Memory     │  Day 4: Observability  │  Day 5: A2A  │
-│  ├── Session       │  ├── Logger            │  ├── Cards   │
+│  ├── Session       │  ├── Logger            │  ├── Card    │
 │  └── Long-term     │  ├── Tracer            │  └── Protocol│
-│                    │  ├── Metrics           │              │
-│                    │  └── Evaluator         │              │
+│                    │  └── Metrics           │              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,153 +49,89 @@ AI-powered multi-agent system for analyzing environmental policy effectiveness w
 
 ```
 agents-intensive-capstone/
-├── agents/                    # Day 1: Multi-Agent System
-│   ├── data_collector.py      # Fetches WAQI API data
-│   ├── policy_analyzer.py     # Statistical analysis
-│   ├── visualizer.py          # Chart configurations
-│   └── reporter.py            # Report generation
+├── main.py              # 🎯 All 5 days in one file (ADK-compatible)
+├── mcp_server.py        # Day 2: MCP server for Claude Desktop
+├── config.py            # Configuration
+├── requirements.txt     # Dependencies
 │
-├── tools/                     # Day 2: Custom Tools
-│   ├── waqi_tool.py           # Air quality API
-│   ├── policy_db_tool.py      # Policy database
-│   ├── analysis_tool.py       # Statistical tools
-│   └── visualization_tool.py  # Viz configs
+├── agents/              # Day 1: Multi-agent components
+├── tools/               # Day 2: Custom tools
+├── memory/              # Day 3: Memory services
+├── observability/       # Day 4: Logging, tracing, metrics
+├── deployment/          # Day 5: A2A protocol, configs
 │
-├── memory/                    # Day 3: Memory Systems
-│   ├── session_manager.py     # Short-term memory
-│   └── long_term_memory.py    # Persistent storage
-│
-├── observability/             # Day 4: Observability ⭐
-│   ├── logger.py              # Structured logging
-│   ├── tracer.py              # Distributed tracing
-│   ├── metrics.py             # Performance metrics
-│   └── evaluator.py           # Agent evaluation
-│
-├── deployment/                # Day 5: Deployment ⭐
-│   ├── a2a_protocol.py        # Agent2Agent protocol
-│   └── deployment_config.py   # Production configs
-│
-├── main.py                    # System orchestrator
-├── mcp_server.py              # MCP server
-├── config.py                  # Configuration
-└── notebooks/
-    └── demo_kaggle.ipynb      # Demo notebook
+├── data/                # Sample policy data
+├── README.md            # This file
+└── .env.example         # API key template
 ```
-
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Installation
-
+### 1. Clone & Install
 ```bash
 git clone https://github.com/joymin5655/Kaggle.git
 cd Kaggle/agents-intensive-capstone
 pip install -r requirements.txt
 ```
 
-### 2. Configuration
-
+### 2. Set API Keys
 ```bash
 cp .env.example .env
-# Edit .env with your API keys:
-# GEMINI_API_KEY=your_key_here
-# WAQI_API_KEY=your_key_here
+# Edit .env:
+# GOOGLE_API_KEY=your_gemini_api_key
+# WAQI_API_KEY=your_waqi_api_key
 ```
 
 ### 3. Run Demo
-
 ```bash
 python main.py
 ```
 
 ---
 
-## 📊 Day 4: Observability
+## 📊 Demo Output
 
-### Logging
-```python
-from observability.logger import AgentLogger
-
-logger = AgentLogger("MyAgent")
-logger.log_tool_call("api_call", {"param": "value"}, {"result": "data"}, duration_ms=150)
 ```
+============================================================
+🌍 Environmental Policy Impact Agent System
+   Kaggle AI Agents Intensive Capstone - Team Robee
+============================================================
 
-### Tracing
-```python
-from observability.tracer import AgentTracer
+📋 South Korea 환경정책 분석 보고서
 
-tracer = AgentTracer()
-trace_id = tracer.start_trace("analyze_policy")
-with tracer.span(trace_id, "data_collection"):
-    # ... your code
-tracer.end_trace(trace_id)
-```
+### 정책: Comprehensive Fine Dust Management Act
+### 효과성 점수: 100/100 (🟢 매우 효과적)
 
-### Metrics
-```python
-from observability.metrics import MetricsCollector
-
-metrics = MetricsCollector()
-metrics.record_tool_call("waqi_api", 150, success=True)
-metrics.get_summary()  # Get aggregated stats
+#### 📊 분석 결과:
+- 목표 감축률: 35%
+- 실제 감축률: 37%
+- 목표 달성: ✅ 예
+- 통계적 유의성: p < 0.001
+- 효과 크기: Large
 ```
 
 ---
 
-## 🔗 Day 5: A2A Protocol
+## 🔑 API Keys
 
-### Agent Cards
-```python
-from deployment.a2a_protocol import AgentCard, A2AProtocol
-
-card = AgentCard(
-    agent_id="my-agent-001",
-    name="My Agent",
-    capabilities=["analyze", "report"],
-    input_schema={...},
-    output_schema={...}
-)
-
-protocol = A2AProtocol(card)
-protocol.discover_agents(capability="analyze")
-```
-
-### Deployment Configs
-```python
-from deployment.deployment_config import DeploymentConfig
-
-config = DeploymentConfig.for_environment("production")
-config.export_json("deploy/config.json")
-```
+| API | Purpose | Get it from |
+|-----|---------|-------------|
+| **Gemini API** | LLM for agent reasoning | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| **WAQI API** | Real-time air quality | [WAQI](https://aqicn.org/api/) |
 
 ---
 
-## 🧪 Demo Results
+## 📚 5-Day Course Reference
 
-**South Korea - 2019 Fine Dust Management Act**
-
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| PM2.5 | 38 μg/m³ | 24 μg/m³ | **-37%** |
-| Bad Air Days | 87/year | 43/year | **-51%** |
-| Statistical Significance | - | - | **p < 0.001** |
-
----
-
-## 📚 References
-
-- [Google AI Agents Intensive Course](https://www.kaggle.com/learn-guide/5-day-agents)
-- [Google ADK Documentation](https://github.com/google/adk-python)
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-- [WAQI API](https://aqicn.org/api/)
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
+| Day | Whitepaper | Codelab |
+|-----|------------|---------|
+| 1 | Introduction to Agents | [1a](https://www.kaggle.com/code/kaggle5daysofai/day-1a-from-prompt-to-action), [1b](https://www.kaggle.com/code/kaggle5daysofai/day-1b-agent-architectures) |
+| 2 | Tools & MCP | [2a](https://www.kaggle.com/code/kaggle5daysofai/day-2a-agent-tools) |
+| 3 | Sessions & Memory | [3a](https://www.kaggle.com/code/kaggle5daysofai/day-3a-agent-sessions) |
+| 4 | Agent Quality | [4a](https://www.kaggle.com/code/kaggle5daysofai/day-4a-agent-observability) |
+| 5 | Prototype to Production | [5a](https://www.kaggle.com/code/kaggle5daysofai/day-5a-agent2agent-communication), [5b](https://www.kaggle.com/code/kaggle5daysofai/day-5b-agent-deployment) |
 
 ---
 
