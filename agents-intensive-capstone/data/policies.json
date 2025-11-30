@@ -1,0 +1,96 @@
+[
+  {
+    "id": "kr_2023_emission",
+    "name": "2023 Emission Reduction Act",
+    "country": "South Korea",
+    "country_code": "KR",
+    "enacted_date": "2023-06-01",
+    "type": "emission_reduction",
+    "description": "Comprehensive policy to reduce fine dust emissions by 30% by 2030",
+    "target_reduction": "30%",
+    "target_pollutant": "PM2.5",
+    "target_year": 2030,
+    "key_measures": [
+      "Old diesel vehicle ban in major cities",
+      "Industrial emission filter requirements",
+      "Coal power plant phase-out acceleration",
+      "Public transportation expansion"
+    ],
+    "budget_usd": 5000000000,
+    "status": "active",
+    "enforcement_level": "high",
+    "latitude": 37.5665,
+    "longitude": 126.9780
+  },
+  {
+    "id": "kr_2019_fine_dust",
+    "name": "Comprehensive Fine Dust Management Act",
+    "country": "South Korea",
+    "country_code": "KR",
+    "enacted_date": "2019-02-15",
+    "type": "emission_reduction",
+    "description": "Emergency measures for fine dust management",
+    "target_reduction": "35%",
+    "target_pollutant": "PM2.5",
+    "target_year": 2024,
+    "key_measures": [
+      "Emergency reduction measures on high pollution days",
+      "Alternate-day driving system",
+      "School outdoor activity restrictions",
+      "Construction site dust control"
+    ],
+    "budget_usd": 3200000000,
+    "status": "completed",
+    "enforcement_level": "high",
+    "actual_reduction": "37%",
+    "latitude": 37.5665,
+    "longitude": 126.9780
+  },
+  {
+    "id": "cn_2020_blue_sky",
+    "name": "Beijing Blue Sky Defense Action Plan",
+    "country": "China",
+    "country_code": "CN",
+    "enacted_date": "2020-01-01",
+    "type": "emission_reduction",
+    "description": "Three-year action plan to win the Blue Sky Defense War",
+    "target_reduction": "25%",
+    "target_pollutant": "PM2.5",
+    "target_year": 2023,
+    "key_measures": [
+      "Coal-fired boiler elimination",
+      "Vehicle emission standards upgrade",
+      "Industrial restructuring",
+      "Regional coordination"
+    ],
+    "budget_usd": 15000000000,
+    "status": "completed",
+    "enforcement_level": "very_high",
+    "actual_reduction": "23%",
+    "latitude": 39.9042,
+    "longitude": 116.4074
+  },
+  {
+    "id": "jp_2021_carbon_neutral",
+    "name": "Green Growth Strategy for Carbon Neutrality",
+    "country": "Japan",
+    "country_code": "JP",
+    "enacted_date": "2021-06-01",
+    "type": "carbon_reduction",
+    "description": "Strategy to achieve carbon neutrality by 2050",
+    "target_reduction": "46%",
+    "target_pollutant": "CO2",
+    "target_year": 2030,
+    "key_measures": [
+      "Renewable energy expansion",
+      "Hydrogen society promotion",
+      "EV adoption acceleration",
+      "Green innovation fund"
+    ],
+    "budget_usd": 20000000000,
+    "status": "active",
+    "enforcement_level": "medium",
+    "latitude": 35.6762,
+    "longitude": 139.6503
+  }
+]
