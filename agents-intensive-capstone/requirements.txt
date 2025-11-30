@@ -1,33 +1,37 @@
-# Google ADK - Agent Development Kit
+# ============================================================
+# Environmental Policy Impact Agent System
+# Kaggle AI Agents Intensive Capstone - Team Robee
+# ============================================================
+
+# Google ADK (Agent Development Kit) - Day 1, 2, 3, 5
 google-adk>=1.0.0
 
-# MCP - Model Context Protocol
-mcp>=1.0.0
-fastmcp>=0.2.0
-
-# HTTP Client
+# HTTP Client - Day 2 (WAQI API)
 httpx>=0.24.0
-aiohttp>=3.8.0
 
 # Data Processing
 pandas>=2.0.0
 numpy>=1.24.0
 
-# Statistical Analysis
+# Statistical Analysis - Day 4
 scipy>=1.10.0
-
-# Visualization
-plotly>=5.15.0
-
-# Configuration
-python-dotenv>=1.0.0
-pyyaml>=6.0
 
 # Async Support
 asyncio-throttle>=1.0.0
 
-# Logging & Observability
-structlog>=23.1.0
+# Environment Variables
+python-dotenv>=1.0.0
 
-# Optional: For Vertex AI deployment
+# YAML for configs
+pyyaml>=6.0
+
+# Optional: For Kaggle Notebook
+# kaggle>=1.5.0
+
+# Optional: For MCP Server - Day 2
+# mcp>=1.0.0
+# fastmcp>=0.2.0
+
+# Optional: For Vertex AI Deployment - Day 5
 # google-cloud-aiplatform>=1.25.0
+# a2a-sdk>=0.3.4
