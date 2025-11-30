@@ -544,49 +544,33 @@ card_json = system.get_a2a_card()
 ```
 agents-intensive-capstone/
 ├── main.py                    # 🎯 Complete implementation (~1,500 lines)
+│                              #    All 5 days in one file
+│
 ├── KAGGLE_NOTEBOOK_CELLS.py   # 📓 11 Kaggle notebook cells
-├── config.py                  # Configuration
-├── requirements.txt           # Dependencies
-├── README.md                  # This file
-├── CONTRIBUTING.md            # Contribution guide
-├── LICENSE                    # MIT License
-├── .env.example               # API key template
+│                              #    Ready to copy to Kaggle
 │
-├── agents/                    # Day 1: Agent modules
-│   ├── __init__.py
-│   ├── data_collector.py
-│   ├── policy_analyzer.py
-│   └── reporter.py
+├── README.md                  # 📋 Documentation (this file)
+├── CONTRIBUTING.md            # 🤝 Contribution guide
+├── requirements.txt           # 📦 Dependencies
+├── LICENSE                    # 📄 MIT License
+├── .env.example               # 🔑 API key template
 │
-├── tools/                     # Day 2: Tool modules
-│   ├── __init__.py
-│   ├── waqi_tool.py          # WAQI API integration
-│   ├── policy_db_tool.py     # Policy database
-│   └── analysis_tool.py      # Statistical analysis
+├── data/                      # 📊 Sample data
+│   └── policies.json          #    Policy database (4 countries)
 │
-├── memory/                    # Day 3: Memory modules
-│   ├── __init__.py
-│   ├── session_manager.py
-│   └── long_term_memory.py
-│
-├── observability/             # Day 4: Observability modules
-│   ├── __init__.py
-│   ├── logger.py
-│   ├── tracer.py
-│   ├── metrics.py
-│   └── evaluator.py
-│
-├── deployment/                # Day 5: A2A & deployment
-│   ├── __init__.py
-│   ├── a2a_protocol.py
-│   └── deployment_config.py
-│
-├── data/                      # Sample data
-│   └── policies.json
-│
-└── tests/                     # Test files
-    └── test_tools.py
+└── tests/                     # 🧪 Test suite
+    ├── __init__.py
+    └── test_tools.py          #    25+ tests for all 5 days
 ```
+
+### File Descriptions
+
+| File | Purpose | Lines |
+|------|---------|-------|
+| `main.py` | Complete 5-day implementation | ~1,500 |
+| `KAGGLE_NOTEBOOK_CELLS.py` | 11 cells for Kaggle notebook | ~1,200 |
+| `tests/test_tools.py` | Comprehensive test suite | ~460 |
+| `README.md` | Full documentation | ~600 |
 
 ---
 
