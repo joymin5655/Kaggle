@@ -14,7 +14,7 @@ Environmental Policy Impact Agent System 🌍
 # 2. SUBTITLE (부제목) - 복사해서 Subtitle 필드에 붙여넣기
 # ------------------------------------------------------------
 
-AI-powered multi-agent system for analyzing environmental policy effectiveness worldwide | Track A: Consent Agents | Team Robee
+AI-powered multi-agent system analyzing environmental policy effectiveness | All 5 Days Implemented | Track A: Consent Agents | Team Robee
 
 # ------------------------------------------------------------
 # 3. TRACK 선택
@@ -28,9 +28,9 @@ Track A: Consent Agents
 
 https://github.com/joymin5655/Kaggle/tree/main/agents-intensive-capstone
 
-# ------------------------------------------------------------
-# 5. DESCRIPTION (아래 내용을 Description 필드에 복사)
-# ------------------------------------------------------------
+# ============================================================
+# 5. DESCRIPTION (아래 전체를 Description 필드에 복사)
+# ============================================================
 
 ## 🎯 Problem Statement
 
@@ -39,171 +39,166 @@ Environmental policies cost billions of dollars globally, yet evaluating their e
 **Key challenges:**
 - Data fragmentation across multiple sources
 - Complex statistical analysis requiring expertise  
-- Labor-intensive global policy tracking
+- No real-time monitoring or evaluation
 - Technical reports inaccessible to non-experts
 
 ---
 
 ## 💡 Solution: AI Multi-Agent System
 
-We built a **4-agent AI system** that automates the entire environmental policy analysis pipeline:
+We built a **4-agent AI system** implementing **all 5 days** of the Google AI Agents Intensive curriculum:
 
-1. 📡 **Automated Data Collection** from WAQI API
-2. 📊 **Intelligent Statistical Analysis** with significance testing
-3. 🗺️ **Interactive Visualizations** on charts
-4. 📄 **Human-Readable Reports** with actionable insights
-
-### Why Agents?
-
-Traditional scripts can't handle dynamic decisions, context-aware analysis, natural language interaction, and adaptive workflows. Our agent system **thinks, adapts, and collaborates** to deliver insights that matter.
+| Day | Concept | Implementation |
+|-----|---------|----------------|
+| Day 1 | Multi-Agent Architecture | 4 specialized agents + orchestrator |
+| Day 2 | Tools & MCP | 5 custom tools + FastMCP server |
+| Day 3 | Memory & Context | Session + Long-term memory |
+| Day 4 | Observability | Logger, Tracer, Metrics, Evaluator |
+| Day 5 | A2A & Deployment | Agent Cards, A2A Protocol, Configs |
 
 ---
 
 ## 🏗️ System Architecture
 
-### Four Specialized Agents
+### Four Specialized Agents (Day 1)
 
-**📡 Data Collection Agent**
-- Role: Gather real-time air quality data and policy information
-- Tools: `waqi_realtime_tool`, `policy_database_tool`
-- MCP Integration: Bulk data collection with user approval
-
-**📊 Policy Analysis Agent**
-- Role: Statistical analysis and trend detection
-- Tools: `calculate_trend`, `compare_before_after`, `calculate_statistical_significance`
-- Capabilities: T-tests, linear regression, effect size calculation
-
-**🗺️ Visualization Agent**
-- Role: Transform data into interactive visuals
-- Tools: `generate_globe_config`, `create_timeline_chart`
-
-**📄 Insight & Reporting Agent**
-- Role: Generate plain-language reports
-- Output: Executive summaries, key findings, recommendations
-
----
-
-## 🎓 Core Concepts Implementation
-
-### ✅ 1. Multi-Agent System (Day 1)
-
-**Implementation**: 4 specialized agents coordinated by orchestrator
+| Agent | Role | Key Tools |
+|-------|------|-----------|
+| 📡 Data Collector | Gather air quality & policy data | WAQI API, Policy DB |
+| 📊 Policy Analyzer | Statistical analysis & trends | T-tests, regression |
+| 🗺️ Visualizer | Create interactive charts | Chart.js configs |
+| 📄 Reporter | Generate human-readable reports | Summaries, insights |
 
 ```python
-runner = Runner(agents=[
-    data_collector_agent,
-    policy_analyzer_agent,
-    visualizer_agent,
-    reporter_agent
-])
-result = runner.run("Analyze Korea's 2023 emission policy")
+# Day 1: Multi-Agent Orchestration
+system = PolicyAgentSystem()
+result = await system.analyze_policy("South Korea")
 ```
-
-**Benefits**: Specialization, scalability, maintainability, parallel execution.
 
 ---
 
-### ✅ 2. Custom Tools & MCP (Day 2)
+## 🛠️ Custom Tools & MCP (Day 2)
 
 **5 Custom Tools Built**:
-1. WAQI API Tool - Real-time air quality data
-2. Policy Database Tool - Search environmental policies
-3. Statistical Analysis Tool - T-tests and significance testing
-4. Visualization Tool - Chart configurations
-5. Trend Analysis Tool - Linear regression
+1. `waqi_tool.py` - Real-time air quality from WAQI API
+2. `policy_db_tool.py` - Environmental policy database
+3. `analysis_tool.py` - Statistical significance testing
+4. `visualization_tool.py` - Chart configurations
+5. `mcp_server.py` - FastMCP server for Claude Desktop
 
-**MCP for Long-Running Operations**:
 ```python
-@mcp.tool(requires_approval=True)
-async def collect_historical_data_bulk(countries, years=5):
-    # Requires user approval - 1000+ API calls
-    return bulk_data
+# Day 2: MCP Integration
+@mcp.tool()
+async def get_realtime_air_quality(city: str) -> dict:
+    """Fetch real-time AQI with user consent for bulk operations."""
+    return fetch_waqi_realtime_data(city)
 ```
 
 ---
 
-### ✅ 3. Memory & Context Engineering (Day 3)
+## 🧠 Memory & Context (Day 3)
 
-**Session Memory**:
-```python
-session = SessionManager()
-session.store_user_preferences({
-    "favorite_countries": ["South Korea", "China"],
-    "notification_threshold": 50
-})
-```
+| Type | Implementation | Purpose |
+|------|----------------|---------|
+| Session Memory | `SessionManager` | User preferences, query history |
+| Long-Term Memory | `LongTermMemory` | Persistent analysis results |
 
-**Long-Term Memory**:
 ```python
-memory = LongTermMemory()
+# Day 3: Memory Management
+session.store_user_preferences({"favorite_countries": ["Korea", "Japan"]})
 memory.save_analysis_result(result)
 past = memory.get_past_analyses("South Korea")
 ```
 
-**Context Engineering**: User asks "Analyze Korea" → stores context → User asks "What about China?" → Agent retrieves context and knows we're comparing.
+---
+
+## 📊 Observability (Day 4) ⭐ NEW
+
+Complete observability stack for production readiness:
+
+| Component | Class | Purpose |
+|-----------|-------|---------|
+| Logging | `AgentLogger` | Structured logs with tool calls |
+| Tracing | `AgentTracer` | Distributed tracing with spans |
+| Metrics | `MetricsCollector` | Performance metrics & aggregation |
+| Evaluation | `AgentEvaluator` | Golden task testing |
+
+```python
+# Day 4: Full Observability
+logger.log_tool_call("waqi_api", inputs, outputs, duration_ms=150)
+with tracer.span(trace_id, "policy_analysis"):
+    analysis = analyzer.analyze(data)
+metrics.record_agent_step("analyzer", "analyze", duration_ms=200)
+```
 
 ---
 
-## 🛠️ Technologies
+## 🚀 A2A Protocol & Deployment (Day 5) ⭐ NEW
 
-| Category | Technology |
-|----------|-----------|
-| Framework | Gemini ADK, MCP |
-| Language | Python 3.10+ |
-| APIs | WAQI (Air Quality) |
-| Analysis | NumPy, SciPy |
+Production-ready deployment with Agent2Agent communication:
+
+**Agent Cards** (A2A Spec):
+```python
+AgentCard(
+    agent_id="policy-analyzer-001",
+    name="Policy Analyzer Agent",
+    capabilities=["trend_analysis", "statistical_significance"],
+    input_schema={"type": "object", "properties": {"policy_id": {"type": "string"}}},
+    output_schema={"type": "object", "properties": {"analysis": {"type": "object"}}}
+)
+```
+
+**Deployment Configurations**:
+- Vertex AI Agent Engine ready
+- Cloud Run auto-scaling configs
+- Retry policies & rate limiting
 
 ---
 
-## 📊 Demo Results: South Korea Case Study
+## 📈 Demo Results: South Korea
 
 **Policy**: 2019 Comprehensive Fine Dust Management Act
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| PM2.5 Average | 38 μg/m³ | 24 μg/m³ | **-37%** |
+| PM2.5 | 38 μg/m³ | 24 μg/m³ | **-37%** |
 | Bad Air Days | 87/year | 43/year | **-51%** |
-| Statistical Significance | - | - | **p < 0.001** |
-
-**Key Insights**:
-1. Immediate impact (12% drop within 6 months)
-2. Diesel vehicle ban contributed 40% of improvement
-3. Regional cooperation amplified benefits
+| Significance | - | - | **p < 0.001** |
 
 ---
 
 ## 🏆 Social Impact (Track A)
 
-### Who Benefits?
-
 | Stakeholder | Benefit |
 |-------------|---------|
-| **Policymakers** | Data-driven decisions |
-| **Researchers** | 80+ hours saved per study |
-| **Citizens** | Transparency on efforts |
-
-### Measurable Impact
-
-| Metric | Value |
-|--------|-------|
-| Analysis Time | ↓ 85% |
-| Research Output | ↑ 3x |
+| Policymakers | Data-driven decisions |
+| Researchers | 80+ hours saved per study |
+| Citizens | Policy transparency |
 
 ---
 
-## 🚧 Challenges Overcome
+## 📁 Project Structure
 
-1. **API Rate Limits**: Implemented caching (73% reduction)
-2. **Data Inconsistencies**: Normalized to WHO standards
-3. **Agent Coordination**: Clear orchestrator workflow
+```
+agents-intensive-capstone/
+├── agents/          # Day 1: Multi-agent system
+├── tools/           # Day 2: Custom tools
+├── memory/          # Day 3: Memory systems
+├── observability/   # Day 4: Logging, tracing, metrics ⭐
+├── deployment/      # Day 5: A2A protocol, configs ⭐
+├── main.py          # Orchestrator
+├── mcp_server.py    # MCP server
+└── notebooks/       # Demo notebook
+```
 
 ---
 
-## 🔮 Future Enhancements
+## 🎓 Key Learnings
 
-- ML predictions (30-90 day forecasts)
-- Satellite imagery integration
-- Deploy to Vertex AI Agent Engine (Day 5)
+1. **All 5 Days Implemented** - Complete curriculum coverage
+2. **Observability is Critical** - Can't improve what you can't measure
+3. **A2A Enables Scale** - Agents communicating across boundaries
+4. **Memory Makes Agents Smart** - Context persistence transforms UX
 
 ---
 
@@ -211,16 +206,8 @@ past = memory.get_past_analyses("South Korea")
 
 **GitHub**: https://github.com/joymin5655/Kaggle/tree/main/agents-intensive-capstone
 
----
-
-## 📚 Key Learnings
-
-1. **Specialization > Generalization**: Single-purpose agents outperformed
-2. **Caching is Critical**: Reduced API costs significantly
-3. **Memory Makes Agents Smart**: Users loved preference persistence
-4. **Plain Language Matters**: Accessibility over jargon
-
----
-
 **Built with ❤️ for a cleaner planet 🌍**
 
+---
+
+*Implements all 5 days of Google's AI Agents Intensive Course using Google ADK*
