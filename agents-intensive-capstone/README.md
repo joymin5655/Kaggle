@@ -3,7 +3,7 @@
 > **AI-powered multi-agent system for analyzing environmental policy effectiveness worldwide**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Google ADK](https://img.shields.io/badge/Google-ADK-orange.svg)](https://github.com/google/adk-python)
 [![Track A](https://img.shields.io/badge/Track-A%20Consent%20Agents-green.svg)](#-social-impact-track-a)
 
@@ -645,7 +645,9 @@ Built with ❤️ for a cleaner planet 🌍
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+CC BY-SA 4.0 License - see [LICENSE](LICENSE)
+
+This license is required by the Kaggle AI Agents Intensive Capstone competition rules.
 
 ---
 
