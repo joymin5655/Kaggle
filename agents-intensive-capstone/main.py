@@ -10,6 +10,14 @@ Implements ALL 5 days of Google's AI Agents Intensive Course:
 - Day 4: Observability & Evaluation (Logs, Traces, Metrics, Evaluator)
 - Day 5: A2A Protocol & Deployment (AgentCard, RemoteAgent)
 
+ADK Advanced Patterns (Official Google Patterns):
+- SequentialAgent: Execute agents in order (pipeline pattern)
+- ParallelAgent: Execute agents concurrently (fan-out pattern)
+- LoopAgent: Iterative refinement until condition met
+- ValidationChecker: Quality gate with escalate signal
+- Callbacks: Agent lifecycle event handling
+- output_key: Auto-save results to state
+
 Team Robee - Kaggle AI Agents Intensive Capstone Project
 GitHub: https://github.com/joymin5655/Kaggle/tree/main/agents-intensive-capstone
 """
@@ -44,6 +52,8 @@ class Agent:
     """
     ADK-compatible Agent class.
     Represents an AI agent with tools and sub-agents.
+    
+    Supports output_key for automatic result storage in state.
     """
     
     def __init__(
@@ -52,13 +62,15 @@ class Agent:
         model: str = DEFAULT_MODEL,
         instruction: str = "",
         tools: List[Callable] = None,
-        sub_agents: List["Agent"] = None
+        sub_agents: List["Agent"] = None,
+        output_key: str = None  # NEW: Auto-save result to state
     ):
         self.name = name
         self.model = model
         self.instruction = instruction
         self.tools = tools or []
         self.sub_agents = sub_agents or []
+        self.output_key = output_key  # NEW: For workflow agents to pass data
         self._tool_registry = {t.__name__: t for t in self.tools if callable(t)}
     
     async def run(self, query: str, context: Dict = None) -> Dict[str, Any]:
@@ -143,6 +155,204 @@ class InMemoryRunner(Runner):
                 print(f"Tools used: {list(result['tool_results'].keys())}")
         
         return result
+
+
+# ============================================================
+# Day 1+: Workflow Agents (ADK Advanced Patterns)
+# ============================================================
+# Reference: https://google.github.io/adk-docs/agents/multi-agents/
+
+class SequentialAgent(Agent):
+    """
+    Workflow Agent: Executes sub_agents one after another in order.
+    
+    Use case: Data pipeline (validate → process → report)
+    Each agent's output can be saved to state via output_key.
+    
+    Example:
+        pipeline = SequentialAgent(
+            name="data_pipeline",
+            sub_agents=[validator, processor, reporter]
+        )
+    """
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Execute sub-agents sequentially."""
+        context = context or {}
+        results = []
+        
+        for agent in self.sub_agents:
+            result = await agent.run(query, context)
+            
+            # Auto-save to state if output_key is defined
+            if hasattr(agent, 'output_key') and agent.output_key:
+                context[agent.output_key] = result
+            
+            results.append({
+                "agent": agent.name,
+                "result": result,
+                "output_key": getattr(agent, 'output_key', None)
+            })
+        
+        return {
+            "workflow": "sequential",
+            "agent": self.name,
+            "steps_completed": len(results),
+            "sequential_results": results,
+            "final_result": results[-1]["result"] if results else None,
+            "context": context
+        }
+
+
+class ParallelAgent(Agent):
+    """
+    Workflow Agent: Executes sub_agents concurrently.
+    
+    Use case: Fetch multiple data sources simultaneously
+    Results are merged and each agent's output saved to its output_key.
+    
+    Example:
+        multi_fetch = ParallelAgent(
+            name="data_fetcher",
+            sub_agents=[air_agent, policy_agent, news_agent]
+        )
+    """
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Execute sub-agents in parallel."""
+        context = context or {}
+        
+        # Create tasks for concurrent execution
+        tasks = [agent.run(query, context.copy()) for agent in self.sub_agents]
+        
+        # Execute all tasks concurrently
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results and merge to context
+        merged = {}
+        parallel_results = []
+        
+        for agent, result in zip(self.sub_agents, results):
+            if isinstance(result, Exception):
+                parallel_results.append({
+                    "agent": agent.name,
+                    "result": None,
+                    "error": str(result)
+                })
+            else:
+                if hasattr(agent, 'output_key') and agent.output_key:
+                    merged[agent.output_key] = result
+                parallel_results.append({
+                    "agent": agent.name,
+                    "result": result,
+                    "output_key": getattr(agent, 'output_key', None)
+                })
+        
+        return {
+            "workflow": "parallel",
+            "agent": self.name,
+            "agents_executed": len(self.sub_agents),
+            "parallel_results": parallel_results,
+            "merged_outputs": merged,
+            "context": {**context, **merged}
+        }
+
+
+class LoopAgent(Agent):
+    """
+    Workflow Agent: Executes sub_agents in loop until condition met.
+    
+    Loop exits when:
+    1. max_iterations is reached
+    2. Any sub-agent returns {"escalate": True}
+    
+    Use case: Iterative refinement, quality improvement
+    
+    Example:
+        refiner = LoopAgent(
+            name="quality_refiner",
+            sub_agents=[improver, validator],
+            max_iterations=5
+        )
+    """
+    
+    def __init__(
+        self,
+        name: str,
+        model: str = DEFAULT_MODEL,
+        instruction: str = "",
+        tools: List[Callable] = None,
+        sub_agents: List["Agent"] = None,
+        output_key: str = None,
+        max_iterations: int = 5
+    ):
+        super().__init__(
+            name=name,
+            model=model,
+            instruction=instruction,
+            tools=tools,
+            sub_agents=sub_agents,
+            output_key=output_key
+        )
+        self.max_iterations = max_iterations
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Execute sub-agents in loop until escalate or max_iterations."""
+        context = context or {}
+        iteration = 0
+        iteration_results = []
+        exit_reason = "max_iterations"
+        
+        while iteration < self.max_iterations:
+            iteration += 1
+            context['_iteration'] = iteration
+            context['_max_iterations'] = self.max_iterations
+            
+            for agent in self.sub_agents:
+                result = await agent.run(query, context)
+                
+                # Check for escalate signal (exit loop)
+                if isinstance(result, dict) and result.get('escalate', False):
+                    iteration_results.append({
+                        "iteration": iteration,
+                        "agent": agent.name,
+                        "result": result,
+                        "escalated": True
+                    })
+                    exit_reason = "escalate"
+                    
+                    return {
+                        "workflow": "loop",
+                        "agent": self.name,
+                        "loop_completed": True,
+                        "iterations": iteration,
+                        "exit_reason": exit_reason,
+                        "iteration_results": iteration_results,
+                        "final_result": result,
+                        "context": context
+                    }
+                
+                # Save to state if output_key defined
+                if hasattr(agent, 'output_key') and agent.output_key:
+                    context[agent.output_key] = result
+                
+                iteration_results.append({
+                    "iteration": iteration,
+                    "agent": agent.name,
+                    "result": result,
+                    "escalated": False
+                })
+        
+        return {
+            "workflow": "loop",
+            "agent": self.name,
+            "loop_completed": True,
+            "iterations": iteration,
+            "exit_reason": exit_reason,
+            "iteration_results": iteration_results,
+            "final_result": iteration_results[-1]["result"] if iteration_results else None,
+            "context": context
+        }
 
 
 # ============================================================
@@ -790,6 +1000,252 @@ class MetricsCollector:
                 name: self.get_histogram_stats(name) 
                 for name in self.histograms
             }
+        }
+
+
+# Day 4: Callbacks for Agent Lifecycle Events
+@dataclass
+class AgentCallback:
+    """
+    Callbacks for agent lifecycle events.
+    
+    Provides hooks for monitoring and debugging agent execution.
+    
+    Example:
+        callback = AgentCallback(
+            on_start=lambda name, ctx: print(f"Starting {name}"),
+            on_complete=lambda name, ctx, res: print(f"Completed {name}")
+        )
+    """
+    on_start: Callable[[str, Dict], None] = None        # (agent_name, context)
+    on_tool_call: Callable[[str, str, Dict, Any], None] = None  # (agent_name, tool_name, inputs, outputs)
+    on_complete: Callable[[str, Dict, Any], None] = None  # (agent_name, context, result)
+    on_error: Callable[[str, Exception], None] = None    # (agent_name, exception)
+
+
+class CallbackManager:
+    """
+    Manages callbacks for agent execution.
+    
+    Allows registering multiple callbacks and triggers them at appropriate lifecycle events.
+    
+    Example:
+        manager = CallbackManager()
+        manager.register(logging_callback)
+        manager.register(metrics_callback)
+        manager.trigger_start("analyzer", context)
+    """
+    
+    def __init__(self):
+        self.callbacks: List[AgentCallback] = []
+    
+    def register(self, callback: AgentCallback):
+        """Register a callback."""
+        self.callbacks.append(callback)
+    
+    def unregister(self, callback: AgentCallback):
+        """Unregister a callback."""
+        if callback in self.callbacks:
+            self.callbacks.remove(callback)
+    
+    def trigger_start(self, agent_name: str, context: Dict):
+        """Trigger on_start callbacks."""
+        for cb in self.callbacks:
+            if cb.on_start:
+                try:
+                    cb.on_start(agent_name, context)
+                except Exception as e:
+                    print(f"Callback error in on_start: {e}")
+    
+    def trigger_tool_call(self, agent_name: str, tool_name: str, inputs: Dict, outputs: Any):
+        """Trigger on_tool_call callbacks."""
+        for cb in self.callbacks:
+            if cb.on_tool_call:
+                try:
+                    cb.on_tool_call(agent_name, tool_name, inputs, outputs)
+                except Exception as e:
+                    print(f"Callback error in on_tool_call: {e}")
+    
+    def trigger_complete(self, agent_name: str, context: Dict, result: Any):
+        """Trigger on_complete callbacks."""
+        for cb in self.callbacks:
+            if cb.on_complete:
+                try:
+                    cb.on_complete(agent_name, context, result)
+                except Exception as e:
+                    print(f"Callback error in on_complete: {e}")
+    
+    def trigger_error(self, agent_name: str, error: Exception):
+        """Trigger on_error callbacks."""
+        for cb in self.callbacks:
+            if cb.on_error:
+                try:
+                    cb.on_error(agent_name, error)
+                except Exception as e:
+                    print(f"Callback error in on_error: {e}")
+
+
+# Day 4: ValidationChecker Agents
+class ValidationChecker(Agent):
+    """
+    Validation Agent: Validates output and signals escalate if valid.
+    
+    Used with LoopAgent to exit loop when quality threshold is met.
+    Returns {"escalate": True} when validation passes.
+    
+    Example:
+        validator = ValidationChecker(
+            name="quality_validator",
+            validator=lambda ctx: ctx.get("score", 0) >= 80
+        )
+    """
+    
+    def __init__(
+        self,
+        name: str,
+        model: str = DEFAULT_MODEL,
+        instruction: str = "",
+        tools: List[Callable] = None,
+        sub_agents: List["Agent"] = None,
+        output_key: str = None,
+        validator: Callable[[Dict], bool] = None
+    ):
+        super().__init__(
+            name=name,
+            model=model,
+            instruction=instruction,
+            tools=tools,
+            sub_agents=sub_agents,
+            output_key=output_key
+        )
+        self.validator = validator or self._default_validator
+    
+    def _default_validator(self, context: Dict) -> bool:
+        """Default validation: check for common success indicators."""
+        status = context.get('status', context.get('quality_status', ''))
+        if isinstance(status, str):
+            return status.lower() in ['completed', 'valid', 'pass', 'approved', 'ok', 'success']
+        return bool(status)
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Validate context and return escalate signal if valid."""
+        context = context or {}
+        
+        try:
+            is_valid = self.validator(context)
+        except Exception as e:
+            is_valid = False
+            return {
+                "agent": self.name,
+                "validation_passed": False,
+                "escalate": False,
+                "error": str(e),
+                "checked_at": datetime.now().isoformat()
+            }
+        
+        return {
+            "agent": self.name,
+            "validation_passed": is_valid,
+            "escalate": is_valid,  # Signal LoopAgent to exit
+            "checked_at": datetime.now().isoformat()
+        }
+
+
+class EffectivenessValidator(ValidationChecker):
+    """
+    Validates policy effectiveness score against a threshold.
+    
+    Use with LoopAgent to continue refining until score meets threshold.
+    
+    Example:
+        validator = EffectivenessValidator(
+            name="score_validator",
+            threshold=80.0
+        )
+    """
+    
+    def __init__(
+        self,
+        name: str = "EffectivenessValidator",
+        threshold: float = 80.0,
+        score_key: str = "effectiveness_score"
+    ):
+        super().__init__(name=name)
+        self.threshold = threshold
+        self.score_key = score_key
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Check if effectiveness score meets threshold."""
+        context = context or {}
+        
+        # Look for score in context (support nested structures)
+        score = context.get(self.score_key, 0)
+        if isinstance(score, dict):
+            score = score.get(self.score_key, 0)
+        
+        is_valid = score >= self.threshold
+        
+        return {
+            "agent": self.name,
+            "validation_passed": is_valid,
+            "escalate": is_valid,
+            "score": score,
+            "threshold": self.threshold,
+            "message": f"Score {score} {'≥' if is_valid else '<'} threshold {self.threshold}",
+            "checked_at": datetime.now().isoformat()
+        }
+
+
+class QualityGateValidator(ValidationChecker):
+    """
+    Multi-criteria quality gate validation.
+    
+    Validates multiple conditions and requires all to pass.
+    
+    Example:
+        validator = QualityGateValidator(
+            name="quality_gate",
+            criteria={
+                "score_min": lambda ctx: ctx.get("score", 0) >= 70,
+                "has_data": lambda ctx: bool(ctx.get("data")),
+                "no_errors": lambda ctx: not ctx.get("errors")
+            }
+        )
+    """
+    
+    def __init__(
+        self,
+        name: str = "QualityGateValidator",
+        criteria: Dict[str, Callable[[Dict], bool]] = None
+    ):
+        super().__init__(name=name)
+        self.criteria = criteria or {}
+    
+    async def run(self, query: str = None, context: Dict = None) -> Dict[str, Any]:
+        """Check all quality criteria."""
+        context = context or {}
+        
+        results = {}
+        all_passed = True
+        
+        for criterion_name, check_fn in self.criteria.items():
+            try:
+                passed = check_fn(context)
+                results[criterion_name] = {"passed": passed, "error": None}
+                if not passed:
+                    all_passed = False
+            except Exception as e:
+                results[criterion_name] = {"passed": False, "error": str(e)}
+                all_passed = False
+        
+        return {
+            "agent": self.name,
+            "validation_passed": all_passed,
+            "escalate": all_passed,
+            "criteria_results": results,
+            "passed_count": sum(1 for r in results.values() if r["passed"]),
+            "total_criteria": len(self.criteria),
+            "checked_at": datetime.now().isoformat()
         }
 
 
@@ -1556,6 +2012,118 @@ async def main():
     print("\nAgent Card (/.well-known/agent.json):")
     print(system.get_a2a_card())
     
+    # ========== Demo 7: Workflow Agents (ADK Advanced Patterns) ==========
+    print("\n" + "="*70)
+    print("🔄 DEMO 7: Workflow Agents (ADK Advanced Patterns)")
+    print("="*70)
+    
+    # Demo SequentialAgent
+    print("\n📋 7.1 SequentialAgent Demo:")
+    print("-"*40)
+    
+    data_agent = Agent(name="data_collector", output_key="collected_data")
+    analyzer_agent = Agent(name="analyzer", output_key="analysis_result")
+    
+    sequential = SequentialAgent(
+        name="data_pipeline",
+        sub_agents=[data_agent, analyzer_agent]
+    )
+    seq_result = await sequential.run("Analyze South Korea", {})
+    print(f"   Workflow: {seq_result['workflow']}")
+    print(f"   Steps completed: {seq_result['steps_completed']}")
+    print(f"   Agents executed: {[r['agent'] for r in seq_result['sequential_results']]}")
+    
+    # Demo ParallelAgent
+    print("\n⚡ 7.2 ParallelAgent Demo:")
+    print("-"*40)
+    
+    air_agent = Agent(name="air_fetcher", output_key="air_data")
+    policy_agent = Agent(name="policy_fetcher", output_key="policy_data")
+    
+    parallel = ParallelAgent(
+        name="multi_fetcher",
+        sub_agents=[air_agent, policy_agent]
+    )
+    par_result = await parallel.run("Fetch data", {})
+    print(f"   Workflow: {par_result['workflow']}")
+    print(f"   Agents executed: {par_result['agents_executed']}")
+    print(f"   Output keys: {list(par_result['merged_outputs'].keys())}")
+    
+    # Demo LoopAgent with ValidationChecker
+    print("\n🔁 7.3 LoopAgent with ValidationChecker Demo:")
+    print("-"*40)
+    
+    # Create a simple score incrementer agent
+    class ScoreIncrementer(Agent):
+        async def run(self, query=None, context=None):
+            context = context or {}
+            # Get current score (handle both int and dict cases)
+            current = context.get('effectiveness_score', 0)
+            if isinstance(current, dict):
+                current = current.get('effectiveness_score', 0)
+            new_score = min(100, current + 30)  # Increment by 30 each iteration
+            # Store directly in context for next iteration
+            context['effectiveness_score'] = new_score
+            return {"effectiveness_score": new_score, "iteration": context.get('_iteration', 1)}
+    
+    incrementer = ScoreIncrementer(name="score_incrementer")
+    validator = EffectivenessValidator(name="score_validator", threshold=80.0, score_key="effectiveness_score")
+    
+    loop_agent = LoopAgent(
+        name="score_refiner",
+        sub_agents=[incrementer, validator],
+        max_iterations=5
+    )
+    
+    loop_result = await loop_agent.run("Refine score", {"effectiveness_score": 0})
+    print(f"   Workflow: {loop_result['workflow']}")
+    print(f"   Iterations: {loop_result['iterations']}")
+    print(f"   Exit reason: {loop_result['exit_reason']}")
+    final_score = loop_result.get('final_result', {}).get('score', 'N/A')
+    print(f"   Final score: {final_score}")
+    print(f"   Validation passed: {loop_result.get('final_result', {}).get('validation_passed', 'N/A')}")
+    
+    # Demo Callbacks
+    print("\n📡 7.4 Callbacks Demo:")
+    print("-"*40)
+    
+    callback_log = []
+    
+    logging_callback = AgentCallback(
+        on_start=lambda name, ctx: callback_log.append(f"Started: {name}"),
+        on_complete=lambda name, ctx, res: callback_log.append(f"Completed: {name}")
+    )
+    
+    callback_manager = CallbackManager()
+    callback_manager.register(logging_callback)
+    
+    callback_manager.trigger_start("test_agent", {})
+    callback_manager.trigger_complete("test_agent", {}, {"status": "ok"})
+    
+    print(f"   Registered callbacks: 1")
+    print(f"   Callback log: {callback_log}")
+    
+    # Demo QualityGateValidator
+    print("\n🚦 7.5 QualityGateValidator Demo:")
+    print("-"*40)
+    
+    quality_gate = QualityGateValidator(
+        name="quality_gate",
+        criteria={
+            "score_min": lambda ctx: ctx.get("score", 0) >= 70,
+            "has_data": lambda ctx: bool(ctx.get("data")),
+            "no_errors": lambda ctx: not ctx.get("errors")
+        }
+    )
+    
+    test_context = {"score": 85, "data": {"test": 1}, "errors": None}
+    gate_result = await quality_gate.run(context=test_context)
+    
+    print(f"   Criteria checked: {gate_result['total_criteria']}")
+    print(f"   Passed: {gate_result['passed_count']}/{gate_result['total_criteria']}")
+    print(f"   All passed: {gate_result['validation_passed']}")
+    print(f"   Escalate signal: {gate_result['escalate']}")
+    
     # ========== Summary ==========
     print("\n" + "="*70)
     print("🏆 DEMO COMPLETE!")
@@ -1563,11 +2131,19 @@ async def main():
     print("""
 ✅ Successfully demonstrated:
    • Multi-agent coordination (4 agents)
-   • Custom tools (3 tools with real API support)
+   • Custom tools (4 tools with real API support)
    • Session & long-term memory
    • Full observability (logs, traces, metrics)
    • Golden task evaluation
    • A2A protocol for agent discovery
+   
+🆕 ADK Advanced Patterns (NEW):
+   • SequentialAgent - Pipeline execution
+   • ParallelAgent - Concurrent execution  
+   • LoopAgent - Iterative refinement
+   • ValidationChecker - Quality gates
+   • Callbacks - Lifecycle event handling
+   • output_key - State management
 
 📚 GitHub: https://github.com/joymin5655/Kaggle/tree/main/agents-intensive-capstone
 🎓 Course: Google AI Agents Intensive (Kaggle)

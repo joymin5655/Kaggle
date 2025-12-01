@@ -155,12 +155,28 @@ An **AI multi-agent system** that automates environmental policy analysis using 
 | Day | Topic | Classes Implemented | Lines |
 |-----|-------|---------------------|-------|
 | **Day 1** | Multi-Agent Architecture | `Agent`, `Runner`, `InMemoryRunner` | ~200 |
+| **Day 1+** | Workflow Agents (ADK) | `SequentialAgent`, `ParallelAgent`, `LoopAgent` | ~200 |
 | **Day 2** | Tools & MCP | `FunctionTool`, 4 custom tools | ~300 |
 | **Day 3** | Sessions & Memory | `InMemorySessionService`, `InMemoryMemoryService` | ~150 |
 | **Day 4** | Observability & Evaluation | `AgentLogger`, `AgentTracer`, `MetricsCollector`, `AgentEvaluator` | ~400 |
+| **Day 4+** | Validation & Callbacks | `ValidationChecker`, `EffectivenessValidator`, `QualityGateValidator`, `CallbackManager` | ~250 |
 | **Day 5** | A2A Protocol | `AgentCard`, `AgentSkill`, `RemoteA2aAgent`, `A2AProtocol` | ~250 |
 
-**Total: ~1,500+ lines of production-ready code**
+**Total: ~2,100+ lines of production-ready code**
+
+### 🆕 ADK Advanced Patterns
+
+> **Official Google ADK patterns implemented**
+
+| Pattern | Class | Purpose |
+|---------|-------|---------|
+| **Sequential Pipeline** | `SequentialAgent` | Execute agents in order, pass data via `output_key` |
+| **Parallel Fan-out** | `ParallelAgent` | Execute agents concurrently, merge results |
+| **Iterative Refinement** | `LoopAgent` | Repeat until `max_iterations` or `escalate=True` |
+| **Quality Gate** | `ValidationChecker` | Validate output, signal completion |
+| **Effectiveness Check** | `EffectivenessValidator` | Score threshold validation |
+| **Multi-Criteria Gate** | `QualityGateValidator` | Multiple validation criteria |
+| **Lifecycle Events** | `AgentCallback`, `CallbackManager` | on_start, on_complete, on_error hooks |
 
 ---
 
